@@ -29,16 +29,16 @@ def cnn_model(input_shape=(64, 64, 3), num_classes=2):
         layers.Flatten(),
         layers.Dense(64, activation='relu'),
         layers.Dropout(0.5),  # Ngăn chặn overfitting
-        layers.Dense(num_classes, activation='softmax')
+        layers.Dense(num_classes, activation='softmax' if num_classes > 2 else 'sigmoid')
     ])
     
     # Biên dịch mô hình với:
     # - optimizer='adam': Thuật toán tối ưu Adam để cập nhật trọng số
-    # - loss='sparse_categorical_crossentropy': Hàm mất mát cho bài toán phân loại nhiều lớp
+    # - loss='sparse_categorical_crossentropy' if num_classes > 2 else 'binary_crossentropy': Hàm mất mát cho bài toán phân loại nhiều lớp hoặc nhị phân
     # - metrics=['accuracy']: Đo lường độ chính xác của mô hình trong quá trình huấn luyện
     model.compile(
         optimizer='adam',
-        loss='sparse_categorical_crossentropy', 
+        loss='sparse_categorical_crossentropy' if num_classes > 2 else 'binary_crossentropy',
         metrics=['accuracy']
     )
     
