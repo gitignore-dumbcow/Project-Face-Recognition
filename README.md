@@ -1,58 +1,111 @@
-# Face Recognition System
+# Hệ Thống Nhận Diện Khuôn Mặt
 
-A real-time face recognition system built with Python, OpenCV, and face_recognition library.
+## Giới Thiệu
+Đây là một ứng dụng nhận diện khuôn mặt sử dụng Python và TensorFlow, với giao diện đồ họa được xây dựng bằng Tkinter. Ứng dụng cho phép người dùng chụp ảnh khuôn mặt, huấn luyện mô hình và thực hiện nhận diện khuôn mặt trong thời gian thực.
 
-## Features
+## Cấu Trúc Thư Mục
+```
+.
+├── main.py              # File chính chứa giao diện người dùng
+├── utils/              # Thư mục chứa các module phụ trợ
+│   ├── data/          # Thư mục chứa dữ liệu huấn luyện
+│   │   ├── train/     # Ảnh huấn luyện
+│   │   └── validation/# Ảnh kiểm định
+│   ├── models/        # Thư mục lưu mô hình đã huấn luyện
+│   ├── plots/         # Thư mục lưu biểu đồ huấn luyện
+│   ├── prepare_data.py# Module xử lý dữ liệu
+│   ├── train.py       # Module huấn luyện mô hình
+│   ├── detect_faces.py# Module nhận diện khuôn mặt
+│   └── model.py       # Định nghĩa kiến trúc mô hình
+└── requirements.txt    # Danh sách thư viện cần thiết
+```
 
-- Real-time face detection and recognition using webcam
-- Support for multiple known faces
-- Simple and intuitive interface
-- High accuracy face recognition
+## Các Tính Năng Chính
 
-## Requirements
+### 1. Chụp Ảnh Khuôn Mặt
+- Cho phép người dùng chụp ảnh khuôn mặt thông qua webcam
+- Tự động phát hiện khuôn mặt và lưu ảnh
+- Chia dữ liệu thành tập huấn luyện (80%) và tập kiểm định (20%)
+- Lưu ảnh với chất lượng cao (95%)
 
-- Python 3.7 or higher
-- Webcam
-- Required Python packages (listed in requirements.txt)
+### 2. Huấn Luyện Mô Hình
+- Sử dụng kiến trúc CNN cho nhận diện khuôn mặt
+- Hiển thị quá trình huấn luyện theo thời gian thực
+- Hiển thị các metrics: accuracy, loss, validation accuracy, validation loss
+- Tự động lưu mô hình tốt nhất
+- Dừng sớm (early stopping) khi không cải thiện
 
-## Installation
+### 3. Nhận Diện Khuôn Mặt
+- Nhận diện khuôn mặt trong thời gian thực
+- Hiển thị xác suất cho mỗi lớp
+- Vẽ khung xung quanh khuôn mặt được phát hiện
 
-1. Clone this repository
-2. Install the required packages:
-   ```
-   pip install -r requirements.txt
-   ```
+## Cách Sử Dụng
 
-## Usage
+### Cài Đặt
+1. Cài đặt các thư viện cần thiết:
+```bash
+pip install -r requirements.txt
+```
 
-1. Add face images to the `Dataset` directory:
-   - Use clear, front-facing photos
-   - Name the files with the person's name (e.g., `john.jpg`, `sarah.png`)
-   - Supported formats: JPG, JPEG, PNG
+### Chạy Ứng Dụng
+```bash
+python main.py
+```
 
-2. Run the face recognition system:
-   ```
-   python face_recognition_system.py
-   ```
+### Các Bước Sử Dụng
+1. **Chụp Ảnh**:
+   - Nhập tên người dùng
+   - Nhấn nút "Chụp ảnh"
+   - Đứng trước camera và chờ chụp đủ số ảnh
 
-3. The system will:
-   - Load known faces from the Dataset directory
-   - Start your webcam
-   - Display real-time face recognition results
-   - Press 'q' to quit the application
+2. **Huấn Luyện**:
+   - Nhấn nút "Huấn luyện"
+   - Theo dõi quá trình huấn luyện qua biểu đồ và metrics
+   - Mô hình sẽ tự động lưu khi đạt kết quả tốt nhất
 
-## Notes
+3. **Nhận Diện**:
+   - Nhấn nút "Nhận diện"
+   - Đứng trước camera để nhận diện
+   - Xem kết quả nhận diện và xác suất
 
-- Make sure you have good lighting for better recognition
-- Keep your face clearly visible to the camera
-- The system works best with front-facing faces
-- Recognition accuracy depends on the quality of the reference images
+## Các Thông Số Kỹ Thuật
 
-## Troubleshooting
+### Mô Hình
+- Kiến trúc CNN với các lớp:
+  - Convolutional layers
+  - MaxPooling layers
+  - Dense layers
+  - Dropout để tránh overfitting
 
-If you encounter any issues:
-1. Ensure all dependencies are correctly installed
-2. Check if your webcam is working properly
-3. Verify that the Dataset directory contains valid face images
-4. Make sure you have sufficient lighting
+### Xử Lý Ảnh
+- Kích thước ảnh đầu vào: 64x64 pixels
+- Chuyển đổi sang ảnh xám
+- Chuẩn hóa pixel values (0-1)
+
+### Huấn Luyện
+- Batch size: 32
+- Số epoch tối đa: 50
+- Early stopping với patience: 10
+- Data augmentation cho tập huấn luyện
+
+## Xử Lý Lỗi
+- Kiểm tra và xử lý lỗi khi mở camera
+- Xử lý lỗi khi lưu ảnh
+- Kiểm tra và tạo thư mục nếu chưa tồn tại
+- Xử lý lỗi khi tải mô hình
+
+## Giao Diện Người Dùng
+- Cửa sổ chính: 1920x1080 pixels
+- Chia làm 2 phần:
+  - Bên trái: Camera và điều khiển
+  - Bên phải: Biểu đồ huấn luyện
+- Hiển thị metrics theo thời gian thực
+- Thanh tiến trình cho các hoạt động
+
+## Lưu ý
+- Đảm bảo đủ ánh sáng khi chụp ảnh
+- Giữ khuôn mặt trong khung camera
+- Đợi quá trình huấn luyện hoàn tất trước khi nhận diện
+- Kiểm tra thư mục data có đủ ảnh trước khi huấn luyện
 
