@@ -10,36 +10,31 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 DATASET_PATH = os.path.join('utils', 'data')
 
 def create_dataset_structure():
-    """Tạo cấu trúc thư mục cần thiết cho tập dữ liệu"""
-    # Tạo thư mục data trong workspace
-    directories = [
-        os.path.join(DATASET_PATH, 'train'),
-        os.path.join(DATASET_PATH, 'validation')
-    ]
+    """Create the necessary directory structure for the dataset"""
+    directories = ['Dataset/train', 'Dataset/validation']
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
-            print(f"Đã tạo thư mục: {directory}")
-    print("Đã tạo thành công các thư mục dữ liệu")
+    print("Dataset directories created successfully")
 
 def capture_face_images(person_name, num_images=50):
     """
-    Chụp ảnh khuôn mặt bằng webcam
+    Capture face images using webcam
     
     Args:
-        person_name: Tên của người dùng
-        num_images: Số lượng ảnh cần chụp
+        person_name: Name of the person
+        num_images: Number of images to capture
     """
-    # Tạo thư mục cho người dùng
-    train_dir = os.path.join(DATASET_PATH, 'train', person_name)
-    val_dir = os.path.join(DATASET_PATH, 'validation', person_name)
+    # Create person's directories
+    train_dir = os.path.join('Dataset/train', person_name)
+    val_dir = os.path.join('Dataset/validation', person_name)
     
     for directory in [train_dir, val_dir]:
         if not os.path.exists(directory):
             os.makedirs(directory)
             print(f"Đã tạo thư mục: {directory}")
     
-    # Khởi tạo webcam
+    # Initialize webcam
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Không thể mở webcam")
@@ -48,19 +43,18 @@ def capture_face_images(person_name, num_images=50):
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
     count = 0
-    frame_count = 0
-    print(f"Đang chụp {num_images} ảnh cho {person_name}. Nhấn 'q' để thoát.")
+    print(f"Capturing {num_images} images for {person_name}. Press 'c' to capture, 'q' to quit.")
     
     while count < num_images:
         ret, frame = cap.read()
         if not ret:
-            print("Không thể lấy khung hình")
+            print("Failed to grab frame")
             break
         
-        # Chuyển sang ảnh xám
+        # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
-        # Phát hiện khuôn mặt
+        # Detect faces
         faces = face_cascade.detectMultiScale(
             gray,
             scaleFactor=1.1,
@@ -68,55 +62,49 @@ def capture_face_images(person_name, num_images=50):
             minSize=(30, 30)
         )
         
-        # Vẽ hình chữ nhật xung quanh khuôn mặt
+        # Draw rectangle around faces
         for (x, y, w, h) in faces:
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            cv2.putText(frame, f'{count}/{num_images}', (x, y-10), 
+            cv2.putText(frame, f'Captured: {count}/{num_images}', (x, y-10), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
         
-        # Hiển thị khung hình
-        cv2.imshow('Chụp Khuôn Mặt', frame)
+        # Display the frame
+        cv2.imshow('Capture Faces', frame)
         
-        # Phát hiện được khuôn mặt và đủ số frame
-        if len(faces) > 0 and frame_count % 5 == 0:
-            try:
-                x, y, w, h = faces[0]
-                # Đảm bảo kích thước tối thiểu
-                if w >= 30 and h >= 30:
-                    face_roi = frame[y:y+h, x:x+w]
-                    face_roi = cv2.resize(face_roi, (64, 64))
-                    
-                    # Lưu 80% vào tập huấn luyện, 20% vào tập kiểm định
-                    if count < int(num_images * 0.8):
-                        save_path = os.path.join(train_dir, f'face_{count:03d}.jpg')
-                    else:
-                        save_path = os.path.join(val_dir, f'face_{count:03d}.jpg')
-                    
-                    # Lưu ảnh với chất lượng tốt
-                    success = cv2.imwrite(save_path, face_roi, [cv2.IMWRITE_JPEG_QUALITY, 95])
-                    if success:
-                        count += 1
-                        print(f"Đã chụp ảnh {count}/{num_images} tại: {save_path}")
-                    else:
-                        print(f"Không thể lưu ảnh tại: {save_path}")
-            except Exception as e:
-                print(f"Lỗi khi lưu ảnh: {e}")
+        # Wait for key press
+        key = cv2.waitKey(1) & 0xFF
         
-        frame_count += 1
+        # If 'c' is pressed and face is detected, save the image
+        if key == ord('c') and len(faces) > 0:
+            x, y, w, h = faces[0]
+            face_roi = frame[y:y+h, x:x+w]
+            face_roi = cv2.resize(face_roi, (64, 64))
+            
+            # Save 80% to training, 20% to validation
+            if count < int(num_images * 0.8):
+                save_path = os.path.join(train_dir, f'face_{count}.jpg')
+            else:
+                save_path = os.path.join(val_dir, f'face_{count}.jpg')
+                
+            cv2.imwrite(save_path, face_roi)
+            count += 1
+            print(f"Captured image {count}/{num_images}")
         
-        # Thoát nếu nhấn 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        elif key == ord('q'):
             break
     
     cap.release()
     cv2.destroyAllWindows()
-    print(f"Đã chụp {count} ảnh cho {person_name}")
+    print(f"Captured {count} images for {person_name}")
 
 def get_data_generators():
     """
-    Tạo data generators cho training và validation
+    Create data generators for training and validation
+    
+    Returns:
+        train_generator, validation_generator
     """
-    # Data augmentation cho training
+    # Data augmentation for training
     train_datagen = ImageDataGenerator(
         rescale=1./255,
         rotation_range=20,
@@ -126,30 +114,28 @@ def get_data_generators():
         fill_mode='nearest'
     )
     
-    # Chỉ rescale cho validation
-    validation_datagen = ImageDataGenerator(rescale=1./255)
+    # Only rescaling for validation
+    val_datagen = ImageDataGenerator(rescale=1./255)
     
-    # Tạo generators với đường dẫn mới
+    # Create generators
     train_generator = train_datagen.flow_from_directory(
         os.path.join(DATASET_PATH, 'train'),
         target_size=(64, 64),
         batch_size=32,
-        class_mode='sparse',
-        shuffle=True
+        class_mode='sparse'
     )
     
-    validation_generator = validation_datagen.flow_from_directory(
-        os.path.join(DATASET_PATH, 'validation'),
+    validation_generator = val_datagen.flow_from_directory(
+        'Dataset/validation',
         target_size=(64, 64),
         batch_size=32,
-        class_mode='sparse',
-        shuffle=False
+        class_mode='sparse'
     )
     
     return train_generator, validation_generator
 
 if __name__ == "__main__":
-    # Kiểm tra các hàm
+    # Test the functions
     create_dataset_structure()
-    person_name = input("Nhập tên người dùng: ")
-    capture_face_images(person_name)
+    person_name = input("Enter person's name: ")
+    capture_face_images(person_name) 
