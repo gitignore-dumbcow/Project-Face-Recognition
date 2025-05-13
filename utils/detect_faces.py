@@ -8,20 +8,9 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 import os
 
-def load_face_recognition_model(models_path):
-    """
-    Load the face recognition model.
-    
-    Args:
-        models_path (str): Path to the models directory
-    
-    Returns:
-        model: Loaded face recognition model
-    """
-    model_path = os.path.join(models_path, 'face_recognition_model.h5')
-    if os.path.exists(model_path):
-        return load_model(model_path)
-    return None
+# Define paths
+MODEL_PATH = os.path.join('utils', 'models', 'best_model.keras')
+DATA_PATH = os.path.join('utils', 'data', 'train')
 
 def preprocess_face(face_img):
     """
@@ -37,7 +26,7 @@ def preprocess_face(face_img):
     face_rgb = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
     
     # Resize to model input size
-    face_resized = cv2.resize(face_rgb, (224, 224))
+    face_resized = cv2.resize(face_rgb, (64, 64))
     
     # Normalize pixel values
     face_normalized = face_resized / 255.0
@@ -52,18 +41,28 @@ def detect_faces():
     Nhận diện khuôn mặt realtime từ webcam
     """
     # Tải model
-    model = load_face_recognition_model()
-    if model is None:
-        return
+    if not os.path.exists(MODEL_PATH):
+        raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Please train the model first.")
+    
+    model = load_model(MODEL_PATH)
     
     # Tải class names từ thư mục data/train
-    class_names = sorted(os.listdir('data/train'))
+    if not os.path.exists(DATA_PATH):
+        raise FileNotFoundError(f"Training data not found at {DATA_PATH}")
+    
+    class_names = sorted(os.listdir(DATA_PATH))
+    if not class_names:
+        raise ValueError("No classes found in training data directory")
     
     # Khởi tạo webcam
     cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        raise RuntimeError("Could not open webcam")
+        
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
     print("Bắt đầu nhận diện khuôn mặt. Nhấn 'q' để thoát.")
+    print(f"Classes: {', '.join(class_names)}")
     
     while True:
         ret, frame = cap.read()
@@ -91,9 +90,9 @@ def detect_faces():
             processed_face = preprocess_face(face_roi)
             
             # Dự đoán
-            predictions = model.predict(processed_face, verbose=0)
-            predicted_class = int(predictions[0][0] > 0.5)  # Convert to binary prediction
-            confidence = predictions[0][0] if predicted_class == 1 else 1 - predictions[0][0]
+            predictions = model.predict(processed_face, verbose=0)[0]
+            predicted_class = np.argmax(predictions)
+            confidence = predictions[predicted_class]
             
             # Vẽ kết quả
             label = f"{class_names[predicted_class]}: {confidence:.2f}"

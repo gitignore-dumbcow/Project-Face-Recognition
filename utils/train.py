@@ -5,8 +5,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
-from utils.model import cnn_model
-from utils.prepare_data import get_data_generators
+from model import cnn_model
+from prepare_data import get_data_generators
 
 # Define paths
 MODELS_PATH = os.path.join('utils', 'models')

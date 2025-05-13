@@ -135,7 +135,8 @@ def get_data_generators():
         target_size=(64, 64),
         batch_size=32,
         class_mode='sparse',
-        shuffle=True
+        shuffle=True,
+        classes=sorted(os.listdir(os.path.join(DATASET_PATH, 'train')))  # Đảm bảo thứ tự classes nhất quán
     )
     
     validation_generator = validation_datagen.flow_from_directory(
@@ -143,8 +144,12 @@ def get_data_generators():
         target_size=(64, 64),
         batch_size=32,
         class_mode='sparse',
-        shuffle=False
+        shuffle=False,
+        classes=train_generator.class_indices.keys()  # Sử dụng cùng thứ tự classes với train
     )
+    
+    print("Class mapping:", train_generator.class_indices)
+    print("Number of classes:", len(train_generator.class_indices))
     
     return train_generator, validation_generator
 
