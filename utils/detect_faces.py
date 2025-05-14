@@ -8,10 +8,6 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 import os
 
-# Define paths
-MODEL_PATH = os.path.join('utils', 'models', 'best_model.keras')
-DATA_PATH = os.path.join('utils', 'data', 'train')
-
 def preprocess_face(face_img):
     """
     Preprocess face image for model input.
@@ -41,28 +37,16 @@ def detect_faces():
     Nhận diện khuôn mặt realtime từ webcam
     """
     # Tải model
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Please train the model first.")
-    
-    model = load_model(MODEL_PATH)
+    model = load_model('D:/Project Face Recognition/utils/models/best_model.keras')
     
     # Tải class names từ thư mục data/train
-    if not os.path.exists(DATA_PATH):
-        raise FileNotFoundError(f"Training data not found at {DATA_PATH}")
-    
-    class_names = sorted(os.listdir(DATA_PATH))
-    if not class_names:
-        raise ValueError("No classes found in training data directory")
+    class_names = sorted(os.listdir('utils/data/train'))
     
     # Khởi tạo webcam
     cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        raise RuntimeError("Could not open webcam")
-        
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
     print("Bắt đầu nhận diện khuôn mặt. Nhấn 'q' để thoát.")
-    print(f"Classes: {', '.join(class_names)}")
     
     while True:
         ret, frame = cap.read()
@@ -90,9 +74,9 @@ def detect_faces():
             processed_face = preprocess_face(face_roi)
             
             # Dự đoán
-            predictions = model.predict(processed_face, verbose=0)[0]
-            predicted_class = np.argmax(predictions)
-            confidence = predictions[predicted_class]
+            predictions = model.predict(processed_face, verbose=0)
+            predicted_class = int(predictions[0][0] > 0.5)  # Convert to binary prediction
+            confidence = predictions[0][0] if predicted_class == 1 else 1 - predictions[0][0]
             
             # Vẽ kết quả
             label = f"{class_names[predicted_class]}: {confidence:.2f}"
