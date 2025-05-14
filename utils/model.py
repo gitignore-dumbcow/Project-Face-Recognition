@@ -42,7 +42,7 @@ def cnn_model(input_shape=(64, 64, 3), num_classes=4):
     # - metrics=['accuracy']: Đo lường độ chính xác của mô hình trong quá trình huấn luyện
     model.compile(
         optimizer='adam',
-        loss='categorical_crossentropy',
+        loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
     )
     
