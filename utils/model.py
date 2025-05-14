@@ -33,7 +33,7 @@ def cnn_model(input_shape=(64, 64, 3), num_classes=4):
         layers.Flatten(),
         layers.Dense(64, activation='relu'),
         layers.Dropout(0.5),  # Ngăn chặn overfitting
-        layers.Dense(num_classes, activation='sigmoid')  
+        layers.Dense(num_classes, activation='softmax')  
     ])
     
     # Biên dịch mô hình với:
